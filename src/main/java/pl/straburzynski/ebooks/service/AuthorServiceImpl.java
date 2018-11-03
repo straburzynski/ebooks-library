@@ -1,5 +1,6 @@
 package pl.straburzynski.ebooks.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.straburzynski.ebooks.exception.AuthorNotFoundException;
@@ -9,6 +10,7 @@ import pl.straburzynski.ebooks.repository.AuthorRepository;
 import java.util.List;
 
 @Service
+@Slf4j
 public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepository authorRepository;
@@ -32,19 +34,24 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public Author create(Author author) {
-        return authorRepository.save(author);
+        Author authorSaved = authorRepository.save(author);
+        log.info("Author created: {} ({})", authorSaved.getName(), authorSaved.getId());
+        return authorSaved;
     }
 
     @Override
     public Author update(Author author, Long authorId) {
         Author authorDb = findById(authorId);
         authorDb.setName(author.getName());
-        return authorRepository.save(authorDb);
+        Author authorSaved = authorRepository.save(authorDb);
+        log.info("Author updated: {}", authorSaved.toString());
+        return authorSaved;
     }
 
     @Override
     public void delete(Long authorId) {
         authorRepository.deleteById(authorId);
+        log.info("Author with id {} deleted", authorId);
     }
 
 }
