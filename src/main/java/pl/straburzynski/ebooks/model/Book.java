@@ -25,7 +25,7 @@ public class Book {
     private String description;
     private Integer year;
 
-    @OneToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     @JoinTable(
             name = "BOOK_AUTHOR",
             joinColumns = @JoinColumn(name = "BOOK_ID"),
@@ -33,7 +33,7 @@ public class Book {
     )
     private List<Author> authors;
 
-    @OneToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     @JoinTable(
             name = "BOOK_CATEGORY",
             joinColumns = @JoinColumn(name = "BOOK_ID"),
