@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+    postgres:
+        restart: always
+        container_name: postgres
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=q1w2e3r4
+            - POSTGRES_DB=ebooks
+        ports:
+            - "5432:5432"
