@@ -3,7 +3,7 @@ version: "3"
 services:
     postgres:
         restart: always
-        container_name: postgres
+        container_name: ebook-postgres
         image: postgres:9.6
         environment:
             - POSTGRES_USER=postgres
