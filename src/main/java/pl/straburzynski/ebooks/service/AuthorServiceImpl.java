@@ -26,6 +26,11 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
+    public List<Author> findByName(String name) {
+        return authorRepository.findByNameContains(name);
+    }
+
+    @Override
     public Author findById(Long id) {
         return authorRepository.findById(id).orElseThrow(
                 () -> new AuthorNotFoundException("Author not found")
