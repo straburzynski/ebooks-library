@@ -1,8 +1,11 @@
 package pl.straburzynski.ebooks.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import pl.straburzynski.ebooks.exception.BookConvertException;
 import pl.straburzynski.ebooks.exception.BookNotFoundException;
 import pl.straburzynski.ebooks.model.Author;
 import pl.straburzynski.ebooks.model.Book;
@@ -19,13 +22,20 @@ public class BookServiceImpl implements BookService {
     private final AuthorService authorService;
     private final BookRepository bookRepository;
     private final CategoryService categoryService;
+    private final ObjectMapper objectMapper;
+    private final FileStorageService fileStorageService;
 
     @Autowired
     public BookServiceImpl(AuthorService authorService,
-                           BookRepository bookRepository, CategoryService categoryService) {
+                           BookRepository bookRepository,
+                           CategoryService categoryService,
+                           ObjectMapper objectMapper,
+                           FileStorageService fileStorageService) {
         this.authorService = authorService;
         this.bookRepository = bookRepository;
         this.categoryService = categoryService;
+        this.objectMapper = objectMapper;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -47,6 +57,25 @@ public class BookServiceImpl implements BookService {
         Book bookSaved = bookRepository.save(book);
         log.info("Book created: {}", bookSaved.toString());
         return bookSaved;
+    }
+
+    @Override
+    public Book create(String book) {
+        try {
+            return create(objectMapper.readValue(book, Book.class));
+        } catch (Exception e) {
+            throw new BookConvertException("Error converting book");
+        }
+    }
+
+    @Override
+    public Book create(String book, MultipartFile image, MultipartFile[] files) {
+        Book savedBook = create(book);
+        fileStorageService.storeFile(image, savedBook);
+        for (MultipartFile file : files) {
+            fileStorageService.storeFile(file, savedBook);
+        }
+        return savedBook;
     }
 
     @Override
