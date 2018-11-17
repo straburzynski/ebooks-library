@@ -53,4 +53,8 @@ public class Book {
     @Enumerated(EnumType.STRING)
     private Set<Format> formats;
 
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    private Set<Language> languages;
+
 }

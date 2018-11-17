@@ -59,9 +59,9 @@ public class BookServiceImpl implements BookService {
         Book book = convertToBook(bookJson);
         book.setAuthors(handleAuthors(book.getAuthors()));
         book.setCategories(handleCategories(book.getCategories()));
-        book.setFormats(handleFormats(multipartFiles));
         Book savedBook = bookRepository.save(book);
         savedBook.setFiles(handleFiles(multipartFiles, savedBook));
+        savedBook.setFormats(handleFormats(savedBook.getFiles()));
         fileStorageService.storeImage(image, savedBook);
         Book bookDb = bookRepository.save(savedBook);
         log.info("Book created: {}", bookDb.toString());
@@ -113,14 +113,11 @@ public class BookServiceImpl implements BookService {
     }
 
 
-    private Set<Format> handleFormats(MultipartFile[] files) {
+    private Set<Format> handleFormats(List<File> files) {
         Set<Format> formats = new HashSet<>();
-        for (MultipartFile file : files) {
-            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-            String extension = StringUtils.getFilenameExtension(fileName);
-            if (FileValidator.isValidExtension(file)) {
-                formats.add(EnumUtils.getEnumIgnoreCase(Format.class, extension));
-            }
+        for (File file : files) {
+            String extension = StringUtils.getFilenameExtension(file.getName());
+            formats.add(EnumUtils.getEnumIgnoreCase(Format.class, extension));
         }
         return formats;
     }
