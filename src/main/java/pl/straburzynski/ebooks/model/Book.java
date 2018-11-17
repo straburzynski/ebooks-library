@@ -25,7 +25,7 @@ public class Book {
     private String description;
     private Integer year;
 
-    @ManyToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "BOOK_AUTHOR",
             joinColumns = @JoinColumn(name = "BOOK_ID"),
@@ -33,13 +33,21 @@ public class Book {
     )
     private List<Author> authors;
 
-    @ManyToMany(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "BOOK_CATEGORY",
             joinColumns = @JoinColumn(name = "BOOK_ID"),
             inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID")
     )
     private List<Category> categories;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "BOOK_FILE",
+            joinColumns = @JoinColumn(name = "BOOK_ID"),
+            inverseJoinColumns = @JoinColumn(name = "FILE_ID")
+    )
+    private List<File> files;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)

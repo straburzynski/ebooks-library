@@ -1,5 +1,5 @@
 package pl.straburzynski.ebooks.model;
 
 public enum Format {
-    AZW, DOC, EPUB, MOBI, PDF,
+    AZW3, DOC, EPUB, MOBI, PDF
 }

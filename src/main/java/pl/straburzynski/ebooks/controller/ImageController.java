@@ -28,7 +28,7 @@ public class ImageController {
 
     @GetMapping(value = "/image/{bookId}", produces = MediaType.IMAGE_JPEG_VALUE)
     @ResponseBody
-    public ResponseEntity<?> getRaceImage(@PathVariable Long bookId) throws IOException {
+    public ResponseEntity<?> getBookImage(@PathVariable Long bookId) throws IOException {
         Book book = bookService.findById(bookId);
         return new ResponseEntity<>(fileStorageService.loadBookImageAsByteArray(book), HttpStatus.OK);
     }

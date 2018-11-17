@@ -30,9 +30,9 @@ public class FileStorageService {
     @Autowired
     public FileStorageService(ApplicationConfiguration applicationConfiguration) {
         this.uploadDir = applicationConfiguration.getUploadDir();
-        this.fileStorageLocation = Paths.get(applicationConfiguration.getUploadDir()).toAbsolutePath().normalize();
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
-            Files.createDirectories(this.fileStorageLocation);
+            Files.createDirectories(fileStorageLocation);
         } catch (Exception ex) {
             throw new FileStorageException("Could not create the uploads directory", ex);
         }
@@ -45,19 +45,36 @@ public class FileStorageService {
 
     public String storeFile(MultipartFile file, Book book) {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String folderName = book.getId() + "_" + book.getTitle();
+        return saveFile(file, folderName, fileName);
+    }
+
+    public void storeImage(MultipartFile file, Book book) {
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         String extension = StringUtils.getFilenameExtension(fileName);
-        String newFileName = book.getId() + "_" + book.getTitle() + "." + extension;
-        return saveFile(file, newFileName);
+        String folderName = book.getId() + "_" + book.getTitle();
+        String newFileName = folderName + "." + extension;
+        saveFile(file, folderName, newFileName);
     }
 
     private String saveFile(MultipartFile file, String filename) {
         try {
-            if (filename.contains("..")) {
-                throw new FileStorageException("Filename contains invalid path sequence " + filename);
-            }
-            Path targetLocation = this.fileStorageLocation.resolve(filename);
+            validateFileName(filename);
+            Path targetLocation = fileStorageLocation.resolve(filename);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            log.info("File saved: {}", filename);
+            log.info("File saved: {}", targetLocation.toString());
+            return filename;
+        } catch (IOException ex) {
+            throw new FileStorageException("Could not store file " + filename, ex);
+        }
+    }
+
+    private String saveFile(MultipartFile file, String folder, String filename) {
+        try {
+            validateFileName(filename);
+            Path targetLocation = createSubFolder(folder).resolve(filename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            log.info("File saved: {}", targetLocation.toString());
             return filename;
         } catch (IOException ex) {
             throw new FileStorageException("Could not store file " + filename, ex);
@@ -80,13 +97,29 @@ public class FileStorageService {
 
     public byte[] loadBookImageAsByteArray(Book book) throws IOException {
         String fileName = book.getId() + "_" + book.getTitle() + ".jpg";
-        String filepath = this.fileStorageLocation.toString() + "/" + fileName;
+        String folderName = book.getId() + "_" + book.getTitle() + "/";
+        String filepath = fileStorageLocation.toString() + "/" + folderName + fileName;
         File file = new File(filepath);
         if (file.exists() && !file.isDirectory()) {
             return Files.readAllBytes(Paths.get(filepath));
         } else {
-            String noRaceImagePath = uploadDir + "/no-image.jpg";
-            return Files.readAllBytes(Paths.get(noRaceImagePath));
+            String noBookImagePath = uploadDir + "/no-image.jpg";
+            return Files.readAllBytes(Paths.get(noBookImagePath));
+        }
+    }
+
+    private void validateFileName(String filename) {
+        if (filename.contains("..")) {
+            throw new FileStorageException("Filename contains invalid path sequence " + filename);
+        }
+    }
+
+    private Path createSubFolder(String folderName) {
+        try {
+            Path subFolder = Paths.get(this.uploadDir + "/" + folderName).toAbsolutePath().normalize();
+            return Files.createDirectories(subFolder);
+        } catch (Exception ex) {
+            throw new FileStorageException("Could not create subfolder: " + folderName, ex);
         }
     }
 

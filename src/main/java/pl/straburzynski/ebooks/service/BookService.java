@@ -11,10 +11,6 @@ public interface BookService {
 
     Book findById(Long id);
 
-    Book create(Book book);
-
-    Book create(String book);
-
     Book create(String book, MultipartFile image, MultipartFile[] files);
 
     Book update(Book book, Long bookId);

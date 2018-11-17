@@ -2,17 +2,21 @@ package pl.straburzynski.ebooks.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import pl.straburzynski.ebooks.exception.BookConvertException;
 import pl.straburzynski.ebooks.exception.BookNotFoundException;
-import pl.straburzynski.ebooks.model.Author;
-import pl.straburzynski.ebooks.model.Book;
-import pl.straburzynski.ebooks.model.Category;
+import pl.straburzynski.ebooks.model.*;
 import pl.straburzynski.ebooks.repository.BookRepository;
+import pl.straburzynski.ebooks.validator.FileValidator;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,31 +55,17 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Book create(Book book) {
+    public Book create(String bookJson, MultipartFile image, MultipartFile[] multipartFiles) {
+        Book book = convertToBook(bookJson);
         book.setAuthors(handleAuthors(book.getAuthors()));
         book.setCategories(handleCategories(book.getCategories()));
-        Book bookSaved = bookRepository.save(book);
-        log.info("Book created: {}", bookSaved.toString());
-        return bookSaved;
-    }
-
-    @Override
-    public Book create(String book) {
-        try {
-            return create(objectMapper.readValue(book, Book.class));
-        } catch (Exception e) {
-            throw new BookConvertException("Error converting book");
-        }
-    }
-
-    @Override
-    public Book create(String book, MultipartFile image, MultipartFile[] files) {
-        Book savedBook = create(book);
-        fileStorageService.storeFile(image, savedBook);
-        for (MultipartFile file : files) {
-            fileStorageService.storeFile(file, savedBook);
-        }
-        return savedBook;
+        book.setFormats(handleFormats(multipartFiles));
+        Book savedBook = bookRepository.save(book);
+        savedBook.setFiles(handleFiles(multipartFiles, savedBook));
+        fileStorageService.storeImage(image, savedBook);
+        Book bookDb = bookRepository.save(savedBook);
+        log.info("Book created: {}", bookDb.toString());
+        return bookDb;
     }
 
     @Override
@@ -98,6 +88,14 @@ public class BookServiceImpl implements BookService {
         log.info("Book with id {} deleted", bookId);
     }
 
+    private Book convertToBook(String book) {
+        try {
+            return objectMapper.readValue(book, Book.class);
+        } catch (Exception e) {
+            throw new BookConvertException("Error converting book");
+        }
+    }
+
     private List<Author> handleAuthors(List<Author> authors) {
         return authors.stream().map(author -> {
                     if (author.getId() != null) {
@@ -113,4 +111,31 @@ public class BookServiceImpl implements BookService {
         return categories.stream().map(category ->
                 categoryService.findById(category.getId())).collect(Collectors.toList());
     }
+
+
+    private Set<Format> handleFormats(MultipartFile[] files) {
+        Set<Format> formats = new HashSet<>();
+        for (MultipartFile file : files) {
+            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+            String extension = StringUtils.getFilenameExtension(fileName);
+            if (FileValidator.isValidExtension(file)) {
+                formats.add(EnumUtils.getEnumIgnoreCase(Format.class, extension));
+            }
+        }
+        return formats;
+    }
+
+    private List<File> handleFiles(MultipartFile[] files, Book book) {
+        List<File> fileList = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (FileValidator.isValidExtension(file)) {
+                String name = fileStorageService.storeFile(file, book);
+                fileList.add(File.builder().name(name).build());
+            } else {
+                log.info("Wrong e-book format: {}", file.getOriginalFilename());
+            }
+        }
+        return fileList;
+    }
+
 }
