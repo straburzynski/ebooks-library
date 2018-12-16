@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.straburzynski.ebooks.model.Book;
+import pl.straburzynski.ebooks.model.File;
 import pl.straburzynski.ebooks.service.BookService;
 
 import java.util.List;
@@ -29,6 +30,11 @@ public class BookController {
     @GetMapping("{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         return new ResponseEntity<>(bookService.findById(id), HttpStatus.OK);
+    }
+
+    @GetMapping("{id}/files")
+    public ResponseEntity<List<File>> getBookFiles(@PathVariable Long id) {
+        return ResponseEntity.ok().body(bookService.getEbookFiles(id));
     }
 
     @PostMapping()

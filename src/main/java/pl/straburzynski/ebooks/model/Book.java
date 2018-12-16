@@ -20,7 +20,6 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
     private String description;
     private Integer year;
@@ -40,14 +39,6 @@ public class Book {
             inverseJoinColumns = @JoinColumn(name = "CATEGORY_ID")
     )
     private List<Category> categories;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "BOOK_FILE",
-            joinColumns = @JoinColumn(name = "BOOK_ID"),
-            inverseJoinColumns = @JoinColumn(name = "FILE_ID")
-    )
-    private List<File> files;
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
