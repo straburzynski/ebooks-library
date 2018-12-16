@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pl.straburzynski.ebooks.model.Book;
 import pl.straburzynski.ebooks.service.BookService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +47,13 @@ public class FileController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @PostMapping("{bookId}")
+    public ResponseEntity<?> addEbookFiles(@PathVariable Long bookId,
+                                           @RequestParam(value = "files") MultipartFile[] files) {
+        Book book = bookService.findById(bookId);
+        return new ResponseEntity<>(bookService.saveFiles(files, book), HttpStatus.CREATED);
     }
 
 }
