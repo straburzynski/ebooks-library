@@ -94,10 +94,12 @@ public class BookService {
     }
 
     public void deleteEbookFile(Long fileId) throws IOException {
+        File file = fileRepository.findById(fileId).orElseThrow(() -> new FileNotFoundException("File not found"));
         String filePath = getEbookFilePath(fileId);
         if (fileStorageService.deleteFile(filePath)) {
             fileRepository.deleteById(fileId);
         }
+        updateEbookFormats(file.getBookId());
     }
 
     public byte[] downloadEbookImage(Long id) throws IOException {
@@ -156,8 +158,7 @@ public class BookService {
         return formats;
     }
 
-    // todo: update formats after adding/deleting ebook file
-    private void updateEbookFormats(Long bookId) {
+    public void updateEbookFormats(Long bookId) {
         Set<File> files = new HashSet<>(fileRepository.findFilesByBookId(bookId));
         Book book = findById(bookId);
         book.setFormats(handleFormats(files));
@@ -178,6 +179,7 @@ public class BookService {
             }
         }
         fileRepository.saveAll(fileList);
+        updateEbookFormats(book.getId());
         return fileList;
     }
 

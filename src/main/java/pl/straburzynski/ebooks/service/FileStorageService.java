@@ -36,7 +36,7 @@ public class FileStorageService {
         }
     }
 
-    public String saveFile(MultipartFile file, String filepath) {
+    String saveFile(MultipartFile file, String filepath) {
         try {
             validateFileName(filepath);
             Path targetLocation = Paths.get(fileStorageLocation + filepath);
@@ -48,7 +48,7 @@ public class FileStorageService {
         }
     }
 
-    public boolean deleteFile(String filePath) throws IOException {
+    boolean deleteFile(String filePath) throws IOException {
         Path file = Paths.get(fileStorageLocation + filePath);
         boolean isDeleted = Files.deleteIfExists(file);
         if (isDeleted) {
@@ -59,7 +59,7 @@ public class FileStorageService {
         return isDeleted;
     }
 
-    public Resource loadFileAsResource(String filePath) {
+    Resource loadFileAsResource(String filePath) {
         try {
             Resource resource = new UrlResource(Paths.get(fileStorageLocation + filePath).toUri());
             if (resource.exists()) {
@@ -72,7 +72,7 @@ public class FileStorageService {
         }
     }
 
-    public byte[] loadFileAsByteArray(String filepath) throws IOException {
+    byte[] loadFileAsByteArray(String filepath) throws IOException {
         File file = new File(fileStorageLocation + filepath);
         if (file.exists() && !file.isDirectory()) {
             return Files.readAllBytes(Paths.get(fileStorageLocation + filepath));
@@ -88,7 +88,7 @@ public class FileStorageService {
         }
     }
 
-    public void createSubFolder(String folderName) {
+    void createSubFolder(String folderName) {
         try {
             Path subFolder = Paths.get(uploadDir + "/" + folderName).toAbsolutePath().normalize();
             if (!Files.isDirectory(subFolder)) {
